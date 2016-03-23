@@ -12,6 +12,11 @@ class User < ActiveRecord::Base
     class_name: :Visit
 
   has_many :visited_urls,
+    Proc.new { distinct },
     through: :visits,
     source: :visited_urls
+
+  def self.find_by_email(email)
+    User.where(email: email).first
+  end
 end

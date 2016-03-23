@@ -17,6 +17,7 @@ class ShortenedUrl < ActiveRecord::Base
     class_name: :Visit
 
   has_many :visitors,
+    Proc.new { distinct },
     through: :visits,
     source: :visitors
 
@@ -32,4 +33,26 @@ class ShortenedUrl < ActiveRecord::Base
   def self.create_for_user_and_long_url!(user, long_url)
     ShortenedUrl.create!(submitter_id: user.id, long_url: long_url, short_url: self.random_code)
   end
+
+  def num_clicks
+    Visit.where(shortened_url_id: id).select(:user_id ).count
+  end
+
+  # def num_uniques
+  #   Visit.where(shortened_url_id: id).select(:user_id ).distinct.count
+  #   #self.visitors.count
+  # end
+
+  def num_recent_uniques
+    Visit.where(shortened_url_id: id, created_at: 10.minutes.ago..0.seconds.ago).select(:user_id).distinct.count
+  end
+
+  def num_uniques
+    self.visitors.count
+  end
+
+  def find_by_short_url(short_url)
+    ShortenedUrl.where(short_url: short_url).first
+  end
+
 end
